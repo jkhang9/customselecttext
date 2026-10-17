@@ -387,7 +387,9 @@ function setStyle(i){
 chips.addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(b) setStyle(+b.dataset.i); });
 
 function copy(btn,text){
-  const label=btn.textContent, ok=()=>{btn.textContent='Copied';setTimeout(()=>btn.textContent=label,1200);};
+  const label=btn.dataset.label||(btn.dataset.label=btn.textContent);
+  if(!btn.style.width) btn.style.width=btn.getBoundingClientRect().width+'px';
+  const ok=()=>{btn.textContent='Copied';clearTimeout(btn._t);btn._t=setTimeout(()=>btn.textContent=label,1200);};
   const fb=()=>{const t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}catch(_){}t.remove();};
   try{navigator.clipboard.writeText(text).then(ok,fb);}catch(_){fb();}
 }
