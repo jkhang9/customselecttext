@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inkwell</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400&family=Geist+Mono:wght@400&family=Crimson+Pro:wght@400&display=swap">
+<style>
+/* Layout: full-viewport paper sheet on the surround green, scrolling internally. Index line, title, style chips, then the passage. */
+:root{
+  --surround:#565c3a; --paper:#f4f3e7; --ink:#41482d; --muted:#777965; --accent:#c1c7a5;
+  --f-sans:"Geist",ui-sans-serif,system-ui,sans-serif;
+  --f-serif:"Crimson Pro",Georgia,"Times New Roman",serif;
+  --f-mono:"Commit Mono","Geist Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--surround);color:var(--ink);display:flex;padding-block:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet{position:relative;flex:1;max-width:1600px;margin:0 auto;background:#fcfcfa;isolation:isolate;overflow:hidden;
+  box-shadow:0 1px 2px rgba(0,0,0,.18),0 12px 40px -12px rgba(0,0,0,.35)}
+/* paper tooth: embossed fine grain + faint mottling */
+.sheet::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;mix-blend-mode:multiply;opacity:.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='t'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeDiffuseLighting surfaceScale='1' diffuseConstant='1.08' lighting-color='%23fff'%3E%3CfeDistantLight azimuth='45' elevation='60'/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23t)'/%3E%3C/svg%3E")}
+.sheet::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.005' numOctaves='4' seed='8' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .62 0 0 0 0 .6 0 0 0 0 .56 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='800' height='800' filter='url(%23m)'/%3E%3C/svg%3E")}
+.scroll{position:absolute;inset:0;overflow:auto}
+.inner{max-width:880px;margin:0 auto;padding:clamp(24px,5vw,64px) clamp(20px,5vw,56px);display:flex;flex-direction:column;gap:28px}
+
+/* type tokens */
+.t-display{font-family:var(--f-sans);font-weight:400;font-size:clamp(30px,8vw,88px);line-height:1.05;letter-spacing:-.055em}
+.t-body{font-family:var(--f-sans);font-weight:400;font-size:16px;line-height:1.65}
+.t-ui{font-family:var(--f-sans);font-weight:400;font-size:14px;line-height:1.45}
+.t-editorial{font-family:var(--f-serif);font-weight:400;font-size:24px;line-height:1.2;font-style:normal}
+.t-meta{font-family:var(--f-mono);font-weight:400;font-size:12px;line-height:1.6}
+
+.index{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);border-bottom:1px solid var(--accent);padding-bottom:10px}
+h1{margin:0;color:var(--ink)}
+.lede{margin:-14px 0 0;color:var(--muted)}
+.bar{display:flex;justify-content:flex-end;align-items:center;gap:12px;flex-wrap:wrap}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn,.chip{border:1px solid var(--accent);background:rgba(255,255,255,.6);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer}
+.btn:hover,.chip:hover{border-color:var(--muted)}
+.btn:active{background:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.groups{display:flex;flex-direction:column;gap:12px}
+.group{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:start}
+.glabel{color:var(--muted);padding-top:8px}
+@media (max-width:560px){.group{grid-template-columns:1fr;gap:4px}.glabel{padding-top:0}}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.help{display:flex;flex-direction:column;gap:22px;border-top:1px solid var(--accent);padding-top:26px}
+.steps{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px;color:var(--ink);max-width:62ch}
+.steps b{font-weight:400;color:var(--ink);text-decoration:underline;text-decoration-color:var(--accent);text-underline-offset:3px}
+.steps pre{margin:8px 0 0;padding:10px 12px;border:1px solid var(--accent);border-radius:6px;background:rgba(255,255,255,.6);overflow-x:auto;color:var(--ink)}
+.keys{margin:0;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;align-items:center}
+.keys dt{display:flex;gap:3px}.keys dd{margin:0;color:var(--muted)}
+kbd{font-family:var(--f-mono);font-size:12px;line-height:1.6;display:inline-block;min-width:1.9em;text-align:center;padding:0 .4em;border:1px solid var(--accent);border-bottom-width:2px;border-radius:4px;background:rgba(255,255,255,.7);color:var(--ink)}
+button:focus-visible{outline:2px solid var(--surround);outline-offset:2px}
+#text p{margin:0 0 .9em;max-width:34em}
+#text p:last-child{margin:0}
+.pv{position:relative;display:inline-block}.pv i{position:absolute;left:-2px;right:-2px;top:0;bottom:0;mix-blend-mode:multiply;box-sizing:border-box;pointer-events:none}
+</style>
+
+</head>
+<body>
+<main class="sheet"><div class="scroll">
+  <div class="inner">
+    <div class="bar">
+      <div class="actions">
+        <button type="button" class="btn t-ui" id="clearAll">Remove all</button>
+        <button type="button" class="btn t-ui" id="copyCss">Copy CSS</button>
+        <button type="button" class="btn t-ui" id="copyJs">Copy JS</button>
+      </div>
+    </div>
+    <div class="groups" id="chips" role="group" aria-label="Highlight style"></div>
+
+    <div id="text" class="t-editorial">
+      <p>There is a quiet kind of love that asks for nothing extraordinary. It lives in the hours we steal from sleep, in conversations that wander without purpose, in the familiar warmth of someone who has learned every version of us and chooses to stay. To be loved so completely is to be known beyond the carefully arranged parts of ourselves, and to discover that even our imperfections have a place to rest.</p>
+      <p>Perhaps devotion is not found in grand promises, but in the tenderness of ordinary days. In making a little more time when there is none to spare, in listening when words become difficult, in finding a thousand small reasons to remain. And if love is a choice we make again and again, then I would choose you in every quiet, unremarkable moment, until the ordinary becomes something sacred.</p>
+    </div>
+
+    <section class="help">
+      <div class="group"><span class="t-meta glabel">How to</span>
+        <ol class="steps t-body">
+          <li><b>Highlight.</b> Drag across any words. The style with the dark border is applied when you let go.</li>
+          <li><b>Change style.</b> Click a style above.</li>
+          <li><b>Layer.</b> Highlight the same words again. Fills get deeper with each pass, and different styles combine, like Soft with Box for a filled box.</li>
+          <li><b>Remove.</b> Click a highlight to remove the top layer, press <kbd>⌘</kbd><kbd>Z</kbd> to undo the last one, or use Remove all.</li>
+          <li><b>Use it on your site.</b> Copy JS and Copy CSS, add both to your page, and start it on the element that holds your text:
+            <pre class="t-meta">const hl = enableHighlight(document.querySelector('#article'), 'hl-marker');</pre></li>
+        </ol>
+      </div>
+      <div class="group"><span class="t-meta glabel">Shortcuts</span>
+        <dl class="keys t-body">
+          <dt><kbd>⌘</kbd><kbd>Z</kbd></dt><dd>Undo the last highlight (Ctrl+Z on Windows)</dd>
+          <dt><kbd>⇧</kbd><kbd>⌫</kbd></dt><dd>Remove all highlights</dd>
+          <dt><kbd>C</kbd></dt><dd>Copy the CSS for the current style</dd>
+          <dt><kbd>J</kbd></dt><dd>Copy the JavaScript</dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+</div></main>
+<style id="dyn"></style>
+
+<script>
+/* highlight.js — select text inside `root` to highlight it; click a highlight to remove it.
+   Highlights are drawn on a layer on top of the text. The text and its spacing are never touched.
+   Usage: const hl = enableHighlight(document.querySelector('#article'), 'hl-marker');
+          hl.className = 'hl-squiggle';  // style for new highlights
+          hl.clear();                     // remove all
+          hl.undo();                      // remove the last highlight
+          hl.highlightSelection();        // highlight the current selection (e.g. from a key press) */
+function enableHighlight(root, className) {
+  const api = { className, items: [] };
+  if (getComputedStyle(root).position === 'static') root.style.position = 'relative';
+  const layer = document.createElement('div');
+  layer.setAttribute('aria-hidden', 'true');
+  layer.style.cssText = 'position:absolute;left:0;top:0;width:0;height:0;overflow:visible;pointer-events:none;user-select:none;mix-blend-mode:multiply';
+  root.appendChild(layer);
+
+  const textNodes = () => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const out = []; for (let n = w.nextNode(); n; n = w.nextNode()) if (!layer.contains(n)) out.push(n);
+    return out;
+  };
+  // character offset of a DOM point, counted from the start of root
+  const offsetOf = (node, off) => { const r = document.createRange(); r.setStart(root, 0); r.setEnd(node, off); return r.toString().length; };
+
+  // one rectangle per line of text between two offsets, in root coordinates
+  function lines(start, end) {
+    const box = root.getBoundingClientRect(), ox = box.left + root.clientLeft, oy = box.top + root.clientTop;
+    const rects = []; const r = document.createRange(); let pos = 0;
+    for (const n of textNodes()) {
+      const a = Math.max(start, pos) - pos, b = Math.min(end, pos + n.length) - pos; pos += n.length;
+      if (b <= a || !n.nodeValue.trim()) continue;
+      r.setStart(n, a); r.setEnd(n, b);
+      for (const c of r.getClientRects()) if (c.width > 0.5) rects.push({ x: c.left - ox, y: c.top - oy, w: c.width, h: c.height });
+    }
+    const merged = [];
+    for (const c of rects) {
+      const m = merged.find((l) => Math.abs(l.y - c.y) < c.h / 2);
+      if (m) { const right = Math.max(m.x + m.w, c.x + c.w); m.x = Math.min(m.x, c.x); m.w = right - m.x; m.h = Math.max(m.h, c.h); }
+      else merged.push({ ...c });
+    }
+    return merged;
+  }
+
+  function render() {
+    layer.textContent = '';
+    for (const it of api.items) {
+      it.lines = lines(it.start, it.end);
+      for (const l of it.lines) {
+        const d = document.createElement('div');
+        d.className = it.className;
+        d.style.cssText = `position:absolute;box-sizing:border-box;left:${l.x - 2}px;top:${l.y}px;width:${l.w + 4}px;height:${l.h}px`;
+        layer.appendChild(d);
+      }
+    }
+  }
+
+  // highlight whatever is selected inside root (returns true if it did)
+  api.highlightSelection = () => {
+    const sel = getSelection();
+    if (!sel.rangeCount || sel.isCollapsed) return false;
+    const range = sel.getRangeAt(0);
+    if (!root.contains(range.startContainer) || !root.contains(range.endContainer)) return false;
+    let start = offsetOf(range.startContainer, range.startOffset), end = offsetOf(range.endContainer, range.endOffset);
+    const text = root.textContent;
+    while (start < end && /\s/.test(text[start])) start++;
+    while (end > start && /\s/.test(text[end - 1])) end--;
+    sel.removeAllRanges();
+    if (end <= start) return false;
+    api.items.push({ start, end, className: api.className }); render();
+    return true;
+  };
+  root.addEventListener('mouseup', () => setTimeout(api.highlightSelection));
+
+  root.addEventListener('click', (e) => {
+    if (!getSelection().isCollapsed) return;
+    const box = root.getBoundingClientRect(), x = e.clientX - box.left - root.clientLeft, y = e.clientY - box.top - root.clientTop;
+    for (let i = api.items.length - 1; i >= 0; i--) {
+      if (api.items[i].lines.some((l) => x >= l.x - 2 && x <= l.x + l.w + 2 && y >= l.y && y <= l.y + l.h)) { api.items.splice(i, 1); render(); return; }
+    }
+  });
+
+  // keep highlights aligned when the layout changes
+  new ResizeObserver(render).observe(root);
+  addEventListener('resize', render);
+  if (document.fonts) document.fonts.ready.then(render);
+
+  api.clear = () => { api.items = []; render(); };
+  api.undo = () => { api.items.pop(); render(); };
+  api.render = render;
+  return api;
+}
+
+</script>
+<script>
+// Every style uses only the five palette colors and is drawn on top of the text.
+const HL = [
+[
+"Marker",
+"S{background:rgba(193,199,165,.45);border-radius:2px}",
+"Background"
+],
+[
+"Soft",
+"S{background:rgba(193,199,165,0.25);border-radius:2px}",
+"Background"
+],
+[
+"Pill",
+"S{background:rgba(193,199,165,.45);border-radius:999px}",
+"Background"
+],
+[
+"Half",
+"S{background:linear-gradient(transparent 56%,rgba(193,199,165,.45) 56%)}",
+"Background"
+],
+[
+"Band",
+"S{background:linear-gradient(transparent 38%,rgba(193,199,165,0.4) 38%,rgba(193,199,165,0.4) 86%,transparent 86%)}",
+"Background"
+],
+[
+"Fade",
+"S{background:linear-gradient(90deg,rgba(193,199,165,.45),rgba(193,199,165,0.0))}",
+"Background"
+],
+[
+"Wash",
+"S{background:radial-gradient(ellipse at center,rgba(193,199,165,0.475),rgba(193,199,165,0.0) 72%)}",
+"Background"
+],
+[
+"Highlighter",
+"S{border-radius:.8em .3em;background:linear-gradient(104deg,rgba(193,199,165,0.0) .9%,rgba(193,199,165,0.5) 2.4%,rgba(193,199,165,0.3) 5.8%,rgba(193,199,165,0.1) 93%,rgba(193,199,165,0.4) 96%,rgba(193,199,165,0.0) 98%),linear-gradient(183deg,rgba(193,199,165,0.0) 0%,rgba(193,199,165,0.2) 7.9%,rgba(193,199,165,0.0) 15%)}",
+"Background"
+],
+[
+"Smudge",
+"S{background:rgba(193,199,165,0.35);filter:blur(2px);border-radius:4px}",
+"Background"
+],
+[
+"Hatch",
+"S{background:repeating-linear-gradient(45deg,rgba(119,121,101,.4) 0 1px,transparent 1px 5px)}",
+"Background"
+],
+[
+"Underline",
+"S{border-bottom:1px solid #41482d}",
+"Underline"
+],
+[
+"Double",
+"S{border-bottom:3px double #41482d}",
+"Underline"
+],
+[
+"Dotted",
+"S{border-bottom:2px dotted #777965}",
+"Underline"
+],
+[
+"Dashed",
+"S{border-bottom:1.5px dashed #565c3a}",
+"Underline"
+],
+[
+"Squiggle",
+"S{background:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='5'%3E%3Cpath d='M0 2.5 Q2.5 0 5 2.5 T10 2.5' fill='none' stroke='%23565c3a' stroke-width='1.2'/%3E%3C/svg%3E\") left bottom/10px 5px repeat-x}",
+"Underline"
+],
+[
+"Beads",
+"S{background:radial-gradient(circle,#565c3a 1px,transparent 1.6px) 0 100%/7px 5px repeat-x}",
+"Underline"
+],
+[
+"Underlay",
+"S{background:linear-gradient(transparent 84%,rgba(193,199,165,.45) 84%)}",
+"Underline"
+],
+[
+"Overline",
+"S{border-top:2px solid #565c3a}",
+"Line"
+],
+[
+"Over & under",
+"S{border-top:1.5px solid #777965;border-bottom:1.5px solid #777965}",
+"Line"
+],
+[
+"Strike",
+"S{background:linear-gradient(transparent calc(55% - 1px),#565c3a calc(55% - 1px),#565c3a calc(55% + 1px),transparent calc(55% + 1px))}",
+"Line"
+],
+[
+"Box",
+"S{border:1px solid #41482d;border-radius:3px}",
+"Outline"
+],
+[
+"Double box",
+"S{border:3px double #565c3a}",
+"Outline"
+],
+[
+"Dashed box",
+"S{border:1px dashed #777965;border-radius:3px}",
+"Outline"
+],
+[
+"Ticket",
+"S{border:1px dashed #565c3a;border-radius:999px}",
+"Outline"
+],
+[
+"Hand circle",
+"S{border:1.5px solid #565c3a;border-radius:255px 15px 225px 15px/15px 225px 15px 255px;transform:scale(1.07,1.3)}",
+"Outline"
+],
+[
+"Bracket",
+"S{border-left:1.5px solid #777965;border-right:1.5px solid #777965}",
+"Outline"
+],
+[
+"Lift",
+"S{background:rgba(193,199,165,.45);box-shadow:0 2px 0 #565c3a}",
+"Effect"
+],
+[
+"Glow",
+"S{background:rgba(193,199,165,0.275);box-shadow:0 0 12px 3px rgba(193,199,165,0.45);border-radius:4px}",
+"Effect"
+],
+[
+"Sticker",
+"S{background:rgba(193,199,165,.45);border-radius:4px;transform:rotate(-1.5deg);box-shadow:0 2px 0 #777965}",
+"Effect"
+]
+];
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const cls=n=>'hl-'+slug(n);
+const pretty=css=>css.replace(/\}/g,'}\n').replace(/\{/g,' {\n  ').replace(/;(?!\n)/g,';\n  ').replace(/\n  \}/g,'\n}').trim();
+
+document.getElementById('dyn').textContent=HL.map(([n,c])=>c.replace(/S/g,'.'+cls(n))).join('\n');
+
+const hl = enableHighlight(document.getElementById('text'), cls(HL[0][0]));
+let current = 0;
+
+const chips=document.getElementById('chips');
+chips.innerHTML=[...new Set(HL.map(h=>h[2]))].map(g=>`<div class="group"><span class="t-meta glabel">${g}</span><div class="chips">${HL.map((h,i)=>[h,i]).filter(([h])=>h[2]===g).map(([[n],i])=>`<button type="button" class="chip t-ui" data-i="${i}" aria-pressed="${i===0}"><span class="pv">${n.replace(/&/g,'&amp;')}<i class="${cls(n)}"></i></span></button>`).join('')}</div></div>`).join('');
+function setStyle(i){
+  current=(i+HL.length)%HL.length; hl.className=cls(HL[current][0]);
+  chips.querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(+x.dataset.i===current)));
+}
+chips.addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(b) setStyle(+b.dataset.i); });
+
+function copy(btn,text){
+  const label=btn.textContent, ok=()=>{btn.textContent='Copied';setTimeout(()=>btn.textContent=label,1200);};
+  const fb=()=>{const t=document.createElement('textarea');t.value=text;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}catch(_){}t.remove();};
+  try{navigator.clipboard.writeText(text).then(ok,fb);}catch(_){fb();}
+}
+document.getElementById('clearAll').onclick=()=>hl.clear();
+document.getElementById('copyCss').onclick=e=>copy(e.currentTarget,pretty(HL[current][1].replace(/S/g,'.'+cls(HL[current][0]))));
+document.getElementById('copyJs').onclick=e=>copy(e.currentTarget,enableHighlight.toString()+`\n\nconst hl = enableHighlight(document.querySelector('#article'), '${cls(HL[current][0])}');\n// hl.undo() removes the last highlight, hl.clear() removes all`);
+</script>
+<script>
+document.addEventListener('keydown',e=>{
+  if(e.target.closest('input,textarea,[contenteditable="true"]')) return;
+  const mod=e.metaKey||e.ctrlKey, k=e.key.toLowerCase();
+  if(mod&&k==='z'&&!e.shiftKey){ e.preventDefault(); hl.undo(); return; }
+  if(mod||e.altKey) return;
+  if(k==='backspace'&&e.shiftKey){ e.preventDefault(); hl.clear(); }
+  else if(k==='c'&&getSelection().isCollapsed){ document.getElementById('copyCss').click(); }
+  else if(k==='j'&&getSelection().isCollapsed){ document.getElementById('copyJs').click(); }
+});
+</script>
+</body>
+</html>
