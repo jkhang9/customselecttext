@@ -74,9 +74,6 @@ h1{margin:0;color:var(--ink)}
 .keys{margin:0;display:grid;grid-template-columns:max-content minmax(0,1fr);gap:8px 16px;align-items:center}
 .keys dt{display:flex;gap:3px}.keys dd{margin:0;color:var(--muted)}
 kbd{font-family:var(--f-mono);font-size:12px;line-height:1.6;display:inline-block;min-width:1.9em;text-align:center;padding:0 .4em;border:1px solid var(--accent);border-bottom-width:2px;border-radius:4px;background:rgba(255,255,255,.7);color:var(--ink)}
-#editor{display:block;width:100%;max-width:34em;min-height:12em;resize:vertical;box-sizing:border-box;padding:14px 16px;margin:0;color:var(--ink);
-  background:rgba(255,255,255,.55);border:1px dashed var(--muted);border-radius:8px;outline:none}
-#editor:focus{border-style:solid;border-color:var(--ink)}
 ::selection{background:var(--ink);color:#fff}
 ::-moz-selection{background:var(--ink);color:#fff}
 button:focus-visible{outline:2px solid var(--surround);outline-offset:2px}
@@ -91,7 +88,6 @@ button:focus-visible{outline:2px solid var(--surround);outline-offset:2px}
   <div class="inner">
     <div class="bar">
       <div class="actions">
-        <button type="button" class="btn t-ui" id="editText">Edit text</button>
         <button type="button" class="btn primary t-ui" id="clearAll">Remove all</button>
         <button type="button" class="btn t-ui" id="copyCss">Copy CSS</button>
         <button type="button" class="btn t-ui" id="copyJs">Copy JS</button>
@@ -103,7 +99,6 @@ button:focus-visible{outline:2px solid var(--surround);outline-offset:2px}
       <p>There is a quiet kind of love that asks for nothing extraordinary. It lives in the hours we steal from sleep, in conversations that wander without purpose, in the familiar warmth of someone who has learned every version of us and chooses to stay. To be loved so completely is to be known beyond the carefully arranged parts of ourselves, and to discover that even our imperfections have a place to rest.</p>
       <p>Perhaps devotion is not found in grand promises, but in the tenderness of ordinary days. In making a little more time when there is none to spare, in listening when words become difficult, in finding a thousand small reasons to remain. And if love is a choice we make again and again, then I would choose you in every quiet, unremarkable moment, until the ordinary becomes something sacred.</p>
     </div>
-    <textarea id="editor" class="t-editorial" aria-label="Your text" placeholder="Paste or type your own text. Leave a blank line between paragraphs." hidden></textarea>
 
     <section class="help">
       <div class="group"><span class="t-meta glabel">How to</span>
@@ -111,7 +106,6 @@ button:focus-visible{outline:2px solid var(--surround);outline-offset:2px}
           <li><b>Highlight.</b> Drag across any words. The style with the dark border is applied when you let go.</li>
           <li><b>Change style.</b> Click a style above.</li>
           <li><b>Layer.</b> Highlight the same words again. Fills get deeper with each pass, and different styles combine, like Soft with Box for a filled box.</li>
-          <li><b>Use your own text.</b> Click Edit text, paste or type anything, then click Done. Leave a blank line between paragraphs. Your text stays in this browser; empty it and click Done to bring back the sample.</li>
           <li><b>Remove.</b> Click a highlight to remove the top layer, press <kbd>⌘</kbd><kbd>Z</kbd> to undo the last one, or use Remove all.</li>
           <li><b>Use it on your site.</b> Copy JS and Copy CSS, add both to your page, and start it on the element that holds your text:
             <pre class="t-meta">const hl = enableHighlight(document.querySelector('#article'), 'hl-marker');</pre></li>
@@ -401,32 +395,6 @@ document.getElementById('copyCss').onclick=e=>copy(e.currentTarget,pretty(HL[cur
 document.getElementById('copyJs').onclick=e=>copy(e.currentTarget,enableHighlight.toString()+`\n\nconst hl = enableHighlight(document.querySelector('#article'), '${cls(HL[current][0])}');\n// hl.undo() removes the last highlight, hl.clear() removes all`);
 </script>
 <script>
-// ---- custom text ----
-const textEl=document.getElementById('text'), editor=document.getElementById('editor'), editBtn=document.getElementById('editText');
-const sample=[...textEl.querySelectorAll('p')].map(p=>p.textContent).join('\n\n');
-function setText(raw){
-  textEl.querySelectorAll('p').forEach(p=>p.remove());
-  const layer=textEl.lastElementChild;
-  raw.split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).forEach(t=>{const p=document.createElement('p');p.textContent=t;textEl.insertBefore(p,layer);});
-  hl.clear();
-}
-try{const saved=localStorage.getItem('inkwell-text'); if(saved) setText(saved);}catch(_){}
-const fit=()=>{editor.style.height='auto';editor.style.height=editor.scrollHeight+4+'px';};
-editor.addEventListener('input',fit);
-editBtn.style.width=editBtn.getBoundingClientRect().width+'px';
-editBtn.onclick=()=>{
-  if(editor.hidden){
-    editor.value=[...textEl.querySelectorAll('p')].map(p=>p.textContent).join('\n\n');
-    textEl.hidden=true; editor.hidden=false; editBtn.textContent='Done'; fit(); editor.focus();
-  }else{
-    const raw=editor.value.trim()||sample;
-    setText(raw);
-    try{ raw===sample?localStorage.removeItem('inkwell-text'):localStorage.setItem('inkwell-text',raw); }catch(_){}
-    editor.hidden=true; textEl.hidden=false; editBtn.textContent='Edit text';
-  }
-};
-editor.addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); editBtn.click(); } });
-
 function tap(id){const b=document.getElementById(id);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),140);b.click();}
 document.addEventListener('keydown',e=>{
   if(e.target.closest('input,textarea,[contenteditable="true"]')) return;
