@@ -42,20 +42,24 @@ h1{margin:0;color:var(--ink)}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
 .btn,.chip{border:1px solid var(--accent);background:rgba(255,255,255,.6);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer}
 .btn:hover,.chip:hover{border-color:var(--muted)}
-/* soft keys: one shape for all, Remove all is the primary (filled) */
-.btn{border:0;border-radius:12px;padding:9px 18px;color:var(--ink);
-  background:linear-gradient(180deg,#ffffff 0%,#f3f3ee 100%);
-  box-shadow:inset 0 1px 0 #fff,inset 0 -3px 0 rgba(65,72,45,.09),0 0 0 1px rgba(65,72,45,.18),0 2px 3px rgba(65,72,45,.16);
+/* raised keys: one shape for all, Remove all is the primary (filled) */
+.btn{border:0;border-radius:12px;padding:9px 18px;color:var(--ink);text-shadow:0 1px 0 #fff;
+  background:linear-gradient(180deg,#ffffff 0%,#f6f6f1 45%,#e4e5d8 100%);
+  box-shadow:inset 0 1px 0 #fff,inset 0 2px 1px rgba(255,255,255,.8),inset 0 -2px 2px rgba(65,72,45,.12),
+    0 0 0 1px rgba(65,72,45,.22),0 3px 0 #cfd1bf,0 4px 0 rgba(65,72,45,.3),0 7px 10px -2px rgba(65,72,45,.28);
   transition:transform .08s ease,box-shadow .08s ease,background .15s ease}
-.btn:hover{background:linear-gradient(180deg,#ffffff 0%,#f7f7f3 100%)}
-.btn:active,.btn.pressed{transform:translateY(1px);background:linear-gradient(180deg,#f3f3ee 0%,#fbfbf8 100%);
-  box-shadow:inset 0 2px 3px rgba(65,72,45,.14),0 0 0 1px rgba(65,72,45,.2)}
-.btn.primary{color:var(--paper);background:linear-gradient(180deg,#666c46 0%,var(--surround) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -3px 0 rgba(0,0,0,.14),0 0 0 1px var(--ink),0 2px 3px rgba(65,72,45,.3)}
-.btn.primary:hover{background:linear-gradient(180deg,#6d734c 0%,#5c6240 100%)}
-.btn.primary:active,.btn.primary.pressed{background:linear-gradient(180deg,#4f5535 0%,var(--surround) 100%);
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.3),0 0 0 1px var(--ink)}
-.actions{gap:10px;padding-bottom:3px}
+.btn:hover{background:linear-gradient(180deg,#ffffff 0%,#fafaf6 45%,#e9eadf 100%)}
+.btn:active,.btn.pressed{transform:translateY(3px);background:linear-gradient(180deg,#ebece2 0%,#f4f4ee 60%,#f8f8f4 100%);
+  box-shadow:inset 0 2px 4px rgba(65,72,45,.22),inset 0 -1px 0 rgba(255,255,255,.7),
+    0 0 0 1px rgba(65,72,45,.24),0 1px 0 rgba(65,72,45,.25),0 2px 3px -1px rgba(65,72,45,.2)}
+.btn.primary{color:var(--paper);text-shadow:0 -1px 0 rgba(0,0,0,.35);
+  background:linear-gradient(180deg,#767c53 0%,#60663f 45%,#4c5233 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -2px 2px rgba(0,0,0,.2),
+    0 0 0 1px var(--ink),0 3px 0 #383e25,0 4px 0 rgba(0,0,0,.35),0 7px 10px -2px rgba(65,72,45,.4)}
+.btn.primary:hover{background:linear-gradient(180deg,#7d835a 0%,#676d45 45%,#525837 100%)}
+.btn.primary:active,.btn.primary.pressed{background:linear-gradient(180deg,#464c2f 0%,#565c3a 60%,#5d633f 100%);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.4),0 0 0 1px var(--ink),0 1px 0 #383e25,0 2px 3px -1px rgba(0,0,0,.3)}
+.actions{gap:12px;padding-bottom:6px}
 @media (prefers-reduced-motion:reduce){.btn{transition:none}}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .groups{display:flex;flex-direction:column;gap:12px}
