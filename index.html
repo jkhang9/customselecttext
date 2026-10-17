@@ -42,7 +42,30 @@ h1{margin:0;color:var(--ink)}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
 .btn,.chip{border:1px solid var(--accent);background:rgba(255,255,255,.6);color:var(--ink);border-radius:6px;padding:6px 11px;cursor:pointer}
 .btn:hover,.chip:hover{border-color:var(--muted)}
-.btn:active{background:var(--accent)}
+/* chunky physical keys */
+.btn{position:relative;border:1px solid var(--ink);border-radius:11px;padding:9px 17px;color:var(--ink);
+  background:linear-gradient(180deg,#ffffff 0%,var(--paper) 45%,#e3e5cf 100%);
+  text-shadow:0 1px 0 rgba(255,255,255,.9);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -3px 0 rgba(193,199,165,.7),inset 0 0 0 1px rgba(255,255,255,.5),
+    0 4px 0 var(--accent),0 5px 0 var(--ink),0 10px 16px -6px rgba(65,72,45,.55);
+  transition:transform .08s ease,box-shadow .08s ease,filter .15s ease}
+.btn::after{content:"";position:absolute;left:8px;right:8px;top:3px;height:38%;border-radius:8px 8px 14px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,0));pointer-events:none}
+.btn:hover{border-color:var(--ink);transform:translateY(-1px);filter:brightness(1.02);
+  box-shadow:inset 0 1px 0 #fff,inset 0 -3px 0 rgba(193,199,165,.7),inset 0 0 0 1px rgba(255,255,255,.5),
+    0 5px 0 var(--accent),0 6px 0 var(--ink),0 12px 18px -6px rgba(65,72,45,.55)}
+.btn:active,.btn.pressed{transform:translateY(4px);
+  box-shadow:inset 0 2px 5px rgba(65,72,45,.35),inset 0 -1px 0 rgba(255,255,255,.6),0 0 0 var(--accent),0 1px 0 var(--ink),0 2px 4px -2px rgba(65,72,45,.5)}
+.btn:active::after,.btn.pressed::after{opacity:.4}
+#clearAll{color:var(--paper);text-shadow:0 -1px 0 rgba(0,0,0,.35);
+  background:linear-gradient(180deg,#7a8052 0%,var(--surround) 55%,#4a5032 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.18),
+    0 4px 0 #3a4027,0 5px 0 #2c311d,0 10px 16px -6px rgba(65,72,45,.6)}
+#clearAll::after{background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0))}
+#clearAll:hover{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -3px 0 rgba(0,0,0,.18),0 5px 0 #3a4027,0 6px 0 #2c311d,0 12px 18px -6px rgba(65,72,45,.6)}
+#clearAll:active,#clearAll.pressed{box-shadow:inset 0 2px 6px rgba(0,0,0,.45),0 0 0 #3a4027,0 1px 0 #2c311d}
+.actions{gap:12px;padding-bottom:6px}
+@media (prefers-reduced-motion:reduce){.btn{transition:none}}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .groups{display:flex;flex-direction:column;gap:12px}
 .group{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;align-items:start}
@@ -373,14 +396,15 @@ document.getElementById('copyCss').onclick=e=>copy(e.currentTarget,pretty(HL[cur
 document.getElementById('copyJs').onclick=e=>copy(e.currentTarget,enableHighlight.toString()+`\n\nconst hl = enableHighlight(document.querySelector('#article'), '${cls(HL[current][0])}');\n// hl.undo() removes the last highlight, hl.clear() removes all`);
 </script>
 <script>
+function tap(id){const b=document.getElementById(id);b.classList.add('pressed');setTimeout(()=>b.classList.remove('pressed'),140);b.click();}
 document.addEventListener('keydown',e=>{
   if(e.target.closest('input,textarea,[contenteditable="true"]')) return;
   const mod=e.metaKey||e.ctrlKey, k=e.key.toLowerCase();
   if(mod&&k==='z'&&!e.shiftKey){ e.preventDefault(); hl.undo(); return; }
   if(mod||e.altKey) return;
-  if(k==='backspace'&&e.shiftKey){ e.preventDefault(); hl.clear(); }
-  else if(k==='c'&&getSelection().isCollapsed){ document.getElementById('copyCss').click(); }
-  else if(k==='j'&&getSelection().isCollapsed){ document.getElementById('copyJs').click(); }
+  if(k==='backspace'&&e.shiftKey){ e.preventDefault(); tap('clearAll'); }
+  else if(k==='c'&&getSelection().isCollapsed){ tap('copyCss'); }
+  else if(k==='j'&&getSelection().isCollapsed){ tap('copyJs'); }
 });
 </script>
 </body>
